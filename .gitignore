@@ -1,0 +1,26 @@
+# Lokale instellingen en geheimen
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+secrets/
+
+# Gegenereerde bestanden
+node_modules/
+coverage/
+dist/
+*.zip
+*.crx
+*.log
+
+# Editor en Windows
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.tmp
+*.bak

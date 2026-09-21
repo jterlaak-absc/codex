@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Rapid Response Alerter settings</title>
+    <style>
+      :root {
+        --ink: #16202c;
+        --muted: #64748b;
+        --line: #dde3ea;
+        --accent: #1f7a68;
+        --mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        padding: 32px 20px 64px;
+        font: 14px/1.55 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: var(--ink);
+        background: #f4f6f8;
+      }
+
+      main { max-width: 620px; margin: 0 auto; }
+
+      h1 {
+        font-size: 13px;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        margin: 0 0 24px;
+      }
+
+      section {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        padding: 18px 20px;
+        margin-bottom: 14px;
+      }
+
+      h2 { font-size: 14px; margin: 0 0 4px; }
+
+      .hint { color: var(--muted); font-size: 12.5px; margin: 0 0 14px; }
+
+      label { display: block; margin-bottom: 12px; }
+      label:last-child { margin-bottom: 0; }
+
+      .label-text { display: block; font-weight: 600; font-size: 12.5px; margin-bottom: 4px; }
+
+      input[type="text"], input[type="number"], input[type="password"], select {
+        width: 100%;
+        padding: 7px 9px;
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        font: 12.5px/1.4 var(--mono);
+        color: var(--ink);
+      }
+
+      input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+      .row { display: flex; align-items: center; gap: 9px; margin-bottom: 10px; }
+      .row:last-child { margin-bottom: 0; }
+      .row input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); }
+      .row span { font-size: 13px; }
+
+      .inline { display: flex; gap: 14px; }
+      .inline label { flex: 1; }
+
+      .bar {
+        position: sticky;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 0 0;
+      }
+
+      button {
+        background: var(--ink);
+        color: #fff;
+        border: 0;
+        border-radius: 3px;
+        padding: 8px 18px;
+        font: 600 13px/1 inherit;
+        cursor: pointer;
+      }
+
+      button.ghost { background: #fff; color: var(--ink); border: 1px solid var(--line); font-weight: 500; }
+      button:hover { opacity: 0.9; }
+
+      #saved { color: var(--accent); font-size: 12.5px; opacity: 0; transition: opacity 0.2s; }
+      #saved.show { opacity: 1; }
+      #teams-feedback, #teams-status { white-space: pre-line; }
+      #teams-feedback { color: var(--accent); }
+      #teams-feedback.error { color: #b00020; }
+      .teams-entry { padding: 8px 0; border-top: 1px solid var(--line); }
+      .teams-entry button { margin-top: 5px; }
+      button:disabled { opacity: 0.5; cursor: wait; }
+
+      code { font: 12px var(--mono); background: #f0f3f6; padding: 1px 4px; border-radius: 2px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Rapid Response Alerter</h1>
+
+      <section lang="nl" aria-labelledby="teams-heading">
+        <h2 id="teams-heading">Verdelen in de supportchat</h2>
+        <p class="hint">Iedereen in de chat kan een request oppakken met ‘Ik pak deze op’.
+          De eerste reactie telt. De bevestiging verschijnt in dezelfde chat.</p>
+        <p class="hint"><a href="TEAMS-INSTALLATIE.html" target="_blank">Teams Workflows instellen</a>:
+          maak de workflow voor jullie groepschat en plak hieronder de triggerlink.</p>
+        <label>
+          <span class="label-text">Teams Workflows-link</span>
+          <input type="password" id="teams-url" autocomplete="off" spellcheck="false" />
+        </label>
+        <label>
+          <span class="label-text">Wanneer aanbieden?</span>
+          <select id="teams-timing">
+            <option value="">Kies het verzendmoment</option>
+            <option value="immediate">Zodra het request op het wallboard staat</option>
+            <option value="warning">Vanaf de eerste ingestelde deadlinewaarschuwing</option>
+          </select>
+        </label>
+        <label class="row"><input type="checkbox" id="teams-single" /><span>Deze browser verzorgt als enige de verzending naar de supportchat</span></label>
+        <label class="row"><input type="checkbox" id="teams-enabled" /><span>Automatisch aanbieden aan de supportchat</span></label>
+        <p class="hint">Bij activeren worden ook de huidige requests zonder behandelaar aangeboden,
+          één per scan of controle. Reeds aangeboden requests worden onthouden.
+          Laat het wallboard open. Een bevestiging in Teams wijzigt ServiceNext niet.</p>
+        <div class="bar" style="position:static;padding-top:0;flex-wrap:wrap">
+          <button id="teams-save">Teams-instellingen opslaan</button>
+          <button id="teams-test" class="ghost">Stuur test naar supportchat</button>
+        </div>
+        <p id="teams-feedback" role="status" aria-live="polite"></p>
+        <p id="teams-status" class="hint"></p>
+        <div id="teams-history"></div>
+      </section>
+
+      <section>
+        <h2>When to warn</h2>
+        <p class="hint">Minutes before the first-response deadline. Each ticket fires once per step.</p>
+        <label>
+          <span class="label-text">Warning steps</span>
+          <input type="text" id="warnMinutes" placeholder="30, 15, 5" />
+        </label>
+        <div class="row"><input type="checkbox" id="alertOnNew" /><span>Alert when a new ticket lands on the board</span></div>
+        <div class="row"><input type="checkbox" id="alertOnBreach" /><span>Alert once the deadline has passed</span></div>
+        <div class="row"><input type="checkbox" id="stickyDeadline" /><span>Deadline alerts stay on screen until dismissed</span></div>
+        <div class="row"><input type="checkbox" id="stickyNew" /><span>New-ticket alerts stay on screen until dismissed</span></div>
+      </section>
+
+      <section>
+        <h2>Werkuren</h2>
+        <p class="hint">De afteller en deadlinewaarschuwingen tellen alleen maandag t/m vrijdag binnen deze tijden. Feestdagen worden niet automatisch overgeslagen.</p>
+        <div class="inline">
+          <label>
+            <span class="label-text">Werkdag begint</span>
+            <input type="time" id="workStart" required />
+          </label>
+          <label>
+            <span class="label-text">Werkdag eindigt</span>
+            <input type="time" id="workEnd" required />
+          </label>
+        </div>
+      </section>
+
+      <section>
+        <h2>Sound</h2>
+        <p class="hint">A distinct tone per alert level, so you can tell urgency apart without looking.</p>
+        <div class="row"><input type="checkbox" id="soundEnabled" /><span>Play a tone with each alert</span></div>
+        <div class="inline">
+          <label>
+            <span class="label-text">Volume (0-1)</span>
+            <input type="number" id="soundVolume" min="0" max="1" step="0.1" />
+          </label>
+          <label>
+            <span class="label-text">Snooze length (minutes)</span>
+            <input type="number" id="snoozeMinutes" min="1" max="60" step="1" />
+          </label>
+        </div>
+        <div class="bar" style="padding-top:12px">
+          <button class="ghost" id="test">Play test tone</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>Opening tickets</h2>
+        <p class="hint">
+          The wallboard row is used first. These templates are the fallback when a row carries no link.
+          Placeholders: <code>{base}</code>, <code>{guid}</code>, <code>{rawguid}</code>, <code>{id}</code>.
+        </p>
+        <label>
+          <span class="label-text">Synergy base URL</span>
+          <input type="text" id="synergyBase" />
+        </label>
+        <label>
+          <span class="label-text">Request URL (when a GUID is known)</span>
+          <input type="text" id="requestUrlTemplate" />
+        </label>
+        <label>
+          <span class="label-text">Fallback URL (no GUID on the board)</span>
+          <input type="text" id="fallbackUrlTemplate" />
+        </label>
+      </section>
+
+      <div class="bar">
+        <button id="save">Save settings</button>
+        <button class="ghost" id="reset">Reset to defaults</button>
+        <span id="saved">Saved</span>
+      </div>
+    </main>
+    <script src="options.js"></script>
+    <script src="teams.js"></script>
+    <script src="teams-options.js"></script>
+  </body>
+</html>

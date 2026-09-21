@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Supportchat koppelen — Rapid Response Alerter</title>
+  <style>
+    body { margin: 0; background: #f4f6f8; color: #16202c; font: 16px/1.65 "Segoe UI", sans-serif; }
+    main { max-width: 820px; margin: 32px auto; padding: 32px; background: white; border: 1px solid #dde3ea; border-radius: 8px; }
+    h1 { font-size: 26px; line-height: 1.25; } h2 { font-size: 19px; margin-top: 30px; }
+    a { color: #176959; } code, pre { background: #f0f3f6; font: 13px/1.6 Consolas, monospace; }
+    pre { padding: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+    li { margin: 8px 0; } .note { border-left: 3px solid #1f7a68; padding-left: 16px; }
+  </style>
+</head>
+<body><main>
+  <h1>Requests aanbieden in de supportchat</h1>
+  <p>De extensie biedt een request aan jullie bestaande groepschat aan. Een medewerker klikt op
+    <strong>Ik pak deze op</strong>. De kaart wordt afgesloten en de chat krijgt een bevestiging met de naam.
+    Deze versie gebruikt Teams Workflows voor de kaart en de reactie.</p>
+  <p class="note">De koppeling moet eenmalig in jullie Microsoft 365-omgeving worden ingericht.
+    Er is nog geen workflow of chat verbonden. De onderstaande stappen zijn een installatiehandleiding;
+    ze zijn geen reeds geïmporteerde flow.</p>
+
+  <h2>1. Maak de workflow voor jullie groepschat</h2>
+  <p>Open Workflows in Teams of <a href="https://make.powerautomate.com/">Power Automate</a> met een account
+    dat lid is van de supportchat. Maak een nieuwe flow met de Teams-trigger
+    <strong>When a Teams webhook request is received</strong>.</p>
+  <p>Kies bij wie de flow mag aanroepen <strong>Anyone</strong>. Deze extensie gebruikt de geheime triggerlink
+    en stuurt geen Microsoft-aanmeldtoken mee. Als jullie organisatie deze optie blokkeert, is deze
+    koppeling nog niet bruikbaar en is een afzonderlijke koppeling met organisatieaanmelding nodig.</p>
+  <p>Laat gelijktijdige uitvoeringen bij de trigger op de standaardinstelling staan (Concurrency control uit).
+    Anders kan een kaart die op een reactie wacht volgende requests blokkeren.</p>
+
+  <h2>2. Lees het requestnummer</h2>
+  <p>Voeg <strong>Data Operations → Compose</strong> toe, noem deze stap <code>Requestnummer</code>,
+    en plaats onderstaande expressie via het expressievenster:</p>
+  <pre>first(triggerBody()?['attachments'])?['content']?['body']?[1]?['facts']?[0]?['value']</pre>
+  <p>Bij een bestaande flow: vervang de oude expressie in <code>Requestnummer</code> voordat je versie 3.1.5 gebruikt. De knop staat nu naast de tekst; het requestnummer blijft beschikbaar in de verborgen kaartgegevens.</p>
+
+  <h2>3. Plaats de kaart en wacht op een reactie</h2>
+  <p>Voeg de Teams-actie <strong>Post adaptive card and wait for a response</strong> toe.
+    Kies <strong>Post as: Flow bot</strong>, <strong>Post in: Group chat</strong> en jullie bestaande
+    <strong>#Supportteam</strong>-chat. De zichtbare naam alleen is geen chat-ID: selecteer de daadwerkelijke chat.</p>
+  <p>Gebruik in het kaart-/Message-veld deze expressie:</p>
+  <pre>string(first(triggerBody()?['attachments'])?['content'])</pre>
+  <p>Zet <strong>Should update card</strong> aan en vul bij <strong>Update message</strong> in:
+    <code>Request </code>, de dynamische uitvoer van <code>Requestnummer</code>, en
+    <code> is opgepakt. Zie de bevestiging in deze chat.</code></p>
+  <p>Stel de retry policy voor deze plaatsingsactie in op <strong>None</strong>, zodat een onzekere
+    plaatsing niet automatisch opnieuw een kaart maakt. Gebruik de actie mét wachten op een reactie;
+    een gewone kaartplaatsing handelt de knop niet af.</p>
+
+  <h2>4. Bevestig wie het request oppakt</h2>
+  <p>Voeg na de wachtactie <strong>Post message in a chat or channel</strong> toe.
+    Kies weer <strong>Flow bot</strong>, <strong>Group chat</strong> en dezelfde supportchat.</p>
+  <p>Bouw de tekst met de dynamische velden uit de eerdere stappen:</p>
+  <pre>Request [uitvoer van Requestnummer] is opgepakt door [Responder display name uit de wachtactie].</pre>
+  <p>De vierkante haken zijn aanwijzingen voor de velden die je invoegt, geen tekst om letterlijk te plaatsen.
+    Kies de identiteit van de responder uit de Teams-actie; een getypte naam is geen bevestigde identiteit.</p>
+  <p>Per kaart telt de eerste inzending. Gewone chatreacties zoals ‘ja ik’, emoji's en meldingen over pauzes
+    worden in deze versie niet als toewijzing geïnterpreteerd.</p>
+
+  <h2>5. Koppel en test</h2>
+  <ol>
+    <li>Sla de flow op en kopieer de volledige HTTP-triggerlink. Voeg een mede-eigenaar toe voor beheer.</li>
+    <li>Laad de meegeleverde extensiemap via <code>chrome://extensions</code> → Ontwikkelaarsmodus → Uitgepakte extensie laden.
+      Werk bij voorkeur de bestaande installatie in dezelfde map bij, zodat de opslag behouden blijft.</li>
+    <li>Open de extensie-instellingen. Plak de link bij Teams Workflows en sla de Teams-instellingen op.
+      Laat automatisch aanbieden voor de eerste test uit.</li>
+    <li>Klik op <strong>Stuur test naar supportchat</strong>. Dit stuurt één kaart met het fictieve request TEST.</li>
+    <li>Controleer de kaart in Teams, klik op <strong>Ik pak deze op</strong> en controleer de afsluiting en de bevestiging met jouw naam.
+      Laat ook een tweede medewerker controleren dat dezelfde kaart niet nogmaals kan worden geclaimd.</li>
+    <li>Kies het verzendmoment, wijs deze browser als enige verzender aan en schakel automatisch aanbieden in.
+      Ook de huidige requests zonder behandelaar komen dan in aanmerking. Laat het wallboard open.</li>
+  </ol>
+  <p>‘Aangeboden aan workflow’ betekent dat de trigger de aanvraag heeft aangenomen.
+    Controleer bij een ontbrekende kaart de uitvoeringsgeschiedenis van de flow.
+    Een geslaagde HTTP-aanvraag bewijst nog niet dat de Teams-actie geslaagd is.</p>
+
+  <h2>Wat deze versie bijhoudt</h2>
+  <p>De extensie onthoudt aangeboden requestnummers lokaal. Activeer daarom maar één verzendende browser.
+    Andere medewerkers kunnen hun bestaande alerts blijven gebruiken. Een andere browser heeft geen gedeelde verzendhistorie.</p>
+  <p>De claim is zichtbaar in Teams. Er is geen terugkoppeling naar ServiceNext, de extensie of de bestaande alerts.
+    Een eenmaal geplaatste kaart wordt niet automatisch ingetrokken als het request van het wallboard verdwijnt.
+    Controleer bij een oudere kaart het request voordat je hem oppakt. Er zijn geen automatische herinneringen,
+    herverdeling of nieuwe SLA-regels toegevoegd.</p>
+  <p>Bij een onzekere verzending toont de extensie een controle-/herhaalactie.
+    Controleer eerst de chat én de flowgeschiedenis; herhalen kan anders een tweede kaart maken.
+    Is de trigger al aangenomen maar een latere flowactie mislukt, herstel die uitvoering in Power Automate
+    nadat je hebt gecontroleerd dat er geen kaart of claim bestaat.</p>
+
+  <h2>Microsoft-documentatie</h2>
+  <p><a href="https://learn.microsoft.com/en-us/connectors/teams/">Teams-trigger, groepschatacties en authenticatie</a> ·
+    <a href="https://learn.microsoft.com/en-us/power-automate/overview-adaptive-cards">Eerste reactie en kaartbijwerking</a> ·
+    <a href="https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook">Workflows en eigenaarschap</a></p>
+</main></body></html>

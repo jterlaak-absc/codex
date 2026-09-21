@@ -1,0 +1,20 @@
+{
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "type": "AdaptiveCard",
+  "version": "1.2",
+  "body": [
+    {
+      "type": "RichTextBlock",
+      "spacing": "None",
+      "inlines": [
+        {
+          "type": "TextRun",
+          "text": "@{concat('✓ ', item()?['content']?['body']?[1]?['facts']?[0]?['value'], ' · ', item()?['content']?['body']?[1]?['facts']?[1]?['value'], ' · Opgepakt door ', body('Adaptieve_kaart_posten_en_wachten_op_een_antwoord')?['responder']?['displayName'])}",
+          "color": "Good",
+          "isSubtle": true
+        }
+      ]
+    }
+  ],
+  "actions": []
+}

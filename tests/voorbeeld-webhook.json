@@ -1,0 +1,57 @@
+{
+  "type": "message",
+  "attachments": [
+    {
+      "contentType": "application/vnd.microsoft.card.adaptive",
+      "contentUrl": null,
+      "content": {
+        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+        "type": "AdaptiveCard",
+        "version": "1.2",
+        "body": [
+          {
+            "type": "TextBlock",
+            "text": "TEST — Support Requests",
+            "weight": "Bolder",
+            "wrap": true
+          },
+          {
+            "type": "FactSet",
+            "facts": [
+              {
+                "title": "Request",
+                "value": "TEST"
+              },
+              {
+                "title": "Klant",
+                "value": "Voorbeeldklant"
+              },
+              {
+                "title": "Eerste reactie vóór",
+                "value": "Test — geen echte deadline"
+              }
+            ]
+          },
+          {
+            "type": "TextBlock",
+            "text": "Dit is een test. Klik op de knop om de bevestiging te controleren.",
+            "wrap": true,
+            "isSubtle": true
+          }
+        ],
+        "actions": [
+          {
+            "type": "Action.Submit",
+            "title": "Ik pak deze op",
+            "data": {
+              "action": "claim",
+              "ticketId": "TEST",
+              "eventId": "example-event",
+              "isTest": true
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
