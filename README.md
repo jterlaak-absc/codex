@@ -1,3 +1,6 @@
+# codex
+applicaties voor support
+
 # Rapid Response Alerter v3.1.9 — Teams supportchat
 
 Removed requests now disappear on the next successful wallboard scan, including when the board becomes empty. The old 90-second retention is removed. Scans and deadline checks are serialized to prevent old checks from restoring removed rows. After one minute without a successful scan, the popup shows that the board data is no longer current and stale tickets no longer trigger deadline alerts.

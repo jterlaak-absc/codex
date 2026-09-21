@@ -1,7 +1,7 @@
 # Git voor de extensie
 
 Deze map bevat de broncode van Rapid Response Alerter v3.1.9.
-De lokale hoofdbranch heet main. Er is nog geen GitHub-repository gekoppeld.
+De lokale hoofdbranch heet main. GitHub-repository: https://github.com/jterlaak-absc/codex (remote origin).
 
 ## Wijzigingen bewaren
 
